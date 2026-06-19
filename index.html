@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SPARK — Tanishuv Ilovasi</title>
+  <meta name="description" content="O'zbekistondagi eng yaxshi tanishuv platformasi. Haqiqiy uchrashuvlar, maxfiy muhit."/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <style>
+    :root {
+      --red:    #FF2020;
+      --red2:   #FF5555;
+      --black:  #060608;
+      --black2: #0e0e12;
+      --black3: #16161c;
+      --white:  #FFFFFF;
+      --text:   #C0BCC8;
+      --muted:  #68647a;
+      --border: rgba(255,255,255,0.06);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+
+    body {
+      font-family:'Inter', sans-serif;
+      background:var(--black);
+      color:var(--white);
+      overflow-x:hidden;
+    }
+
+    /* ── SPARK CANVAS (particles + sparks) ── */
+    #bgCanvas {
+      position:fixed; inset:0;
+      z-index:0; pointer-events:none;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position:fixed; top:0; left:0; width:100%;
+      height:64px; padding:0 40px;
+      display:flex; align-items:center; justify-content:space-between;
+      z-index:200;
+      background:rgba(6,6,8,0.80);
+      backdrop-filter:blur(22px);
+      border-bottom:1px solid var(--border);
+    }
+
+    /* SPARK LOGO with SVG sparks */
+    .spark-logo {
+      display:flex; align-items:center; gap:10px;
+      text-decoration:none;
+    }
+    .logo-icon {
+      position:relative; width:36px; height:36px;
+    }
+    .logo-icon svg { width:36px; height:36px; }
+    .logo-text {
+      font-family:'Syne', sans-serif;
+      font-size:1.4rem; font-weight:800;
+      letter-spacing:.12em; color:#fff;
+    }
+    .logo-text span { color:var(--red); }
+
+    .nav-cta {
+      padding:10px 24px; border-radius:99px;
+      background:var(--red); color:#fff;
+      font-size:.86rem; font-weight:700;
+      border:none; cursor:pointer;
+      box-shadow:0 0 22px rgba(255,32,32,0.45);
+      transition:.22s; display:flex; align-items:center; gap:7px;
+    }
+    .nav-cta:hover { transform:translateY(-2px); box-shadow:0 0 38px rgba(255,32,32,0.6); }
+
+    /* ── HERO — takes 100vh, all attention here ── */
+    .hero {
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      padding:80px 40px 60px;
+      position:relative; overflow:hidden;
+      z-index:1;
+    }
+
+    /* deep gradient bg */
+    .hero::before {
+      content:'';
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 30%, rgba(255,32,32,0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 80% at 20% 80%, rgba(180,0,60,0.10) 0%, transparent 60%),
+        linear-gradient(180deg, #060608 0%, #0a060c 100%);
+      pointer-events:none;
+    }
+
+    /* grid lines overlay — moody, techy */
+    .hero::after {
+      content:'';
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(255,32,32,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,32,32,0.04) 1px, transparent 1px);
+      background-size:60px 60px;
+      pointer-events:none;
+      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    .hero-inner {
+      max-width:1160px; width:100%;
+      display:grid; grid-template-columns:1.1fr 0.9fr;
+      gap:60px; align-items:center;
+      position:relative; z-index:2;
+    }
+
+    /* ── LEFT CONTENT ── */
+    .eyebrow {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 15px; border-radius:99px;
+      border:1px solid rgba(255,32,32,0.28);
+      background:rgba(255,32,32,0.07);
+      font-size:.73rem; font-weight:700;
+      color:var(--red2); letter-spacing:.1em;
+      text-transform:uppercase; margin-bottom:24px;
+    }
+    .pulse-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:var(--red);
+      box-shadow:0 0 8px var(--red);
+      animation:blink 1.5s infinite;
+      flex-shrink:0;
+    }
+    @keyframes blink {
+      0%,100%{opacity:1;transform:scale(1)}
+      50%{opacity:.25;transform:scale(.6)}
+    }
+
+    .hero-title {
+      font-family:'Syne', sans-serif;
+      font-size:clamp(3rem, 5.5vw, 5.2rem);
+      font-weight:800; line-height:.94;
+      letter-spacing:-0.025em;
+      margin-bottom:20px;
+    }
+    .hero-title .accent {
+      display:block;
+      background:linear-gradient(100deg, #FF2020 0%, #FF7070 60%, #FFB0B0 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+
+    .hero-body {
+      font-size:1.05rem; line-height:1.78;
+      color:var(--text); max-width:440px;
+      margin-bottom:36px;
+    }
+
+    /* BIG CTA — the star of the show */
+    .cta-block { display:flex; flex-direction:column; gap:0; max-width:360px; }
+
+    .btn-fire {
+      display:flex; align-items:center; justify-content:center; gap:12px;
+      padding:20px 40px; border-radius:18px;
+      background:linear-gradient(135deg, #FF1A1A, #CC0000);
+      color:#fff; font-size:1.12rem; font-weight:800;
+      border:none; cursor:pointer;
+      box-shadow:0 0 60px rgba(255,26,26,0.45), 0 4px 24px rgba(0,0,0,0.4);
+      transition:.25s; position:relative; overflow:hidden;
+      letter-spacing:.01em;
+    }
+    .btn-fire::before {
+      content:'';
+      position:absolute; inset:0;
+      background:linear-gradient(135deg, rgba(255,255,255,.08), transparent);
+      border-radius:18px;
+    }
+    .btn-fire::after {
+      content:'';
+      position:absolute; top:0; left:-120%;
+      width:70%; height:100%;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      animation:shine 2.6s infinite;
+    }
+    @keyframes shine { 0%{left:-120%} 100%{left:160%} }
+    .btn-fire:hover {
+      transform:translateY(-3px) scale(1.02);
+      box-shadow:0 0 90px rgba(255,26,26,0.6), 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .btn-fire .fire-icon { font-size:1.2rem; animation:flicker 1.8s ease-in-out infinite; }
+    @keyframes flicker {
+      0%,100%{transform:scale(1) rotate(-3deg)}
+      25%{transform:scale(1.15) rotate(3deg)}
+      50%{transform:scale(.95) rotate(-2deg)}
+      75%{transform:scale(1.1) rotate(2deg)}
+    }
+
+    .btn-sub {
+      margin-top:10px;
+      font-size:.74rem; color:var(--muted);
+      display:flex; align-items:center; gap:6px;
+      justify-content:center;
+    }
+    .btn-sub i { font-size:.7rem; }
+
+    /* trust pills row */
+    .trust-pills {
+      display:flex; gap:10px; margin-top:32px; flex-wrap:wrap;
+    }
+    .pill {
+      display:flex; align-items:center; gap:7px;
+      padding:8px 14px; border-radius:99px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      font-size:.78rem; color:var(--text);
+    }
+    .pill i { color:var(--red); font-size:.75rem; }
+
+    /* ── PHONE MOCKUP ── */
+    .phone-wrap {
+      position:relative;
+      display:flex; align-items:center; justify-content:center;
+      height:560px;
+    }
+
+    /* glow ring behind phone */
+    .phone-glow {
+      position:absolute;
+      width:320px; height:320px; border-radius:50%;
+      background:radial-gradient(circle, rgba(255,32,32,0.18), transparent 70%);
+      filter:blur(40px);
+      animation:glowPulse 4s ease-in-out infinite;
+      z-index:1;
+    }
+    @keyframes glowPulse {
+      0%,100%{transform:scale(1); opacity:.8}
+      50%{transform:scale(1.2); opacity:1}
+    }
+
+    .phone-outer {
+      width:265px;
+      background:linear-gradient(160deg, #1e1a20, #0a080c);
+      border-radius:46px; padding:12px;
+      border:1px solid rgba(255,255,255,.1);
+      box-shadow:
+        0 50px 100px rgba(0,0,0,.7),
+        0 0 0 1px rgba(255,32,32,.08),
+        inset 0 1px 0 rgba(255,255,255,.06);
+      animation:phoneFloat 6.5s ease-in-out infinite;
+      position:relative; z-index:2;
+    }
+    @keyframes phoneFloat {
+      0%,100%{transform:translateY(0) rotate(-2.5deg)}
+      50%{transform:translateY(-13px) rotate(-0.5deg)}
+    }
+    .phone-screen {
+      border-radius:36px; overflow:hidden;
+      aspect-ratio:9/19.5;
+      background:var(--black2);
+      display:flex; flex-direction:column;
+    }
+
+    /* phone header */
+    .ph-header {
+      background:linear-gradient(180deg, #1a0808, #110208);
+      padding:16px 14px 12px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .ph-brand {
+      font-family:'Syne', sans-serif;
+      font-size:.95rem; font-weight:800;
+      letter-spacing:.1em; color:#fff;
+    }
+    .ph-brand span { color:var(--red); }
+    .ph-notif {
+      width:24px; height:24px; border-radius:50%;
+      background:var(--red); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.6rem; font-weight:700;
+    }
+
+    /* profile card */
+    .ph-card {
+      flex:1; margin:8px; border-radius:22px; overflow:hidden;
+      background:linear-gradient(160deg, #2a0a10, #120408);
+      position:relative; display:flex; flex-direction:column;
+      justify-content:flex-end;
+    }
+    .ph-card-bg {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(160deg, #3d0a14, #1a0408);
+    }
+    .ph-card-bg i { font-size:4rem; color:rgba(255,32,32,0.15); }
+    .ph-card-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(180deg, transparent 30%, rgba(0,0,0,.85) 100%);
+    }
+    .ph-card-info {
+      position:relative; padding:12px;
+    }
+    .ph-name {
+      font-family:'Syne', sans-serif;
+      font-weight:800; font-size:.9rem; color:#fff;
+      margin-bottom:3px;
+    }
+    .ph-dist {
+      font-size:.6rem; color:rgba(255,255,255,.5);
+      display:flex; align-items:center; gap:4px;
+    }
+    .ph-dist i { color:var(--red); }
+
+    /* phone action buttons */
+    .ph-actions {
+      display:flex; justify-content:center;
+      align-items:center; gap:14px; padding:10px 14px;
+      background:var(--black2);
+    }
+    .ph-btn {
+      display:flex; align-items:center; justify-content:center;
+      border-radius:50%; font-size:.9rem;
+    }
+    .ph-btn-skip { width:40px; height:40px; background:rgba(255,255,255,.06); color:var(--muted); }
+    .ph-btn-like {
+      width:52px; height:52px;
+      background:var(--red); color:#fff;
+      box-shadow:0 0 20px rgba(255,32,32,.5);
+      animation:heartbeat 2s ease-in-out infinite;
+    }
+    @keyframes heartbeat {
+      0%,100%{transform:scale(1)}
+      30%{transform:scale(1.08)}
+      60%{transform:scale(.95)}
+    }
+    .ph-btn-star { width:40px; height:40px; background:rgba(255,255,255,.06); color:var(--muted); }
+
+    /* floating chips */
+    .chip {
+      position:absolute;
+      background:rgba(12,10,16,.88);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(18px);
+      border-radius:14px; padding:10px 13px;
+      display:flex; align-items:center; gap:9px;
+      box-shadow:0 8px 28px rgba(0,0,0,.5);
+      z-index:3;
+    }
+    .chip-ico {
+      width:30px; height:30px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.78rem; flex-shrink:0;
+    }
+    .chip strong { display:block; font-size:.78rem; color:#fff; font-weight:700; line-height:1.2; }
+    .chip small { font-size:.68rem; color:var(--muted); }
+
+    .chip-match { top:35px; right:-18px; animation:cf1 5s ease-in-out infinite; }
+    .chip-match .chip-ico { background:rgba(255,32,32,.15); color:var(--red); }
+    .chip-users { bottom:60px; left:-22px; animation:cf2 6.5s ease-in-out infinite; }
+    .chip-users .chip-ico { background:rgba(0,200,120,.12); color:#00C878; }
+    @keyframes cf1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+    @keyframes cf2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+
+    /* ── BELOW-FOLD sections (compact) ── */
+    .section {
+      padding:70px 40px 80px;
+      position:relative; z-index:1;
+    }
+    .section-dark { background:var(--black2); }
+    .section-black { background:var(--black); }
+
+    .container { max-width:1100px; margin:auto; }
+
+    .sec-label {
+      font-size:.72rem; font-weight:700;
+      letter-spacing:.14em; text-transform:uppercase;
+      color:rgba(255,80,80,.55); margin-bottom:10px;
+    }
+    .sec-h {
+      font-family:'Syne', sans-serif;
+      font-size:clamp(1.7rem, 3.5vw, 2.6rem);
+      font-weight:800; line-height:1.1;
+      letter-spacing:-0.02em; margin-bottom:44px;
+    }
+
+    /* features compact grid */
+    .feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .feat-card {
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:16px; padding:24px 20px;
+      transition:.22s;
+    }
+    .feat-card:hover {
+      border-color:rgba(255,32,32,.25);
+      background:rgba(255,32,32,.04);
+      transform:translateY(-3px);
+    }
+    .feat-ico {
+      width:42px; height:42px; border-radius:11px;
+      background:rgba(255,32,32,.1); color:var(--red);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; margin-bottom:16px;
+    }
+    .feat-card h3 {
+      font-family:'Syne', sans-serif;
+      font-weight:700; font-size:.95rem; color:#fff; margin-bottom:7px;
+    }
+    .feat-card p { font-size:.85rem; color:var(--muted); line-height:1.6; }
+
+    /* reviews compact */
+    .rev-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .rev-card {
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:16px; padding:22px 20px;
+    }
+    .rev-stars { color:var(--red); font-size:.8rem; letter-spacing:1px; margin-bottom:12px; }
+    .rev-text { font-size:.88rem; color:var(--text); line-height:1.7; margin-bottom:18px; }
+    .rev-author { display:flex; align-items:center; gap:10px; }
+    .rev-av {
+      width:32px; height:32px; border-radius:50%;
+      background:var(--red); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:.78rem; flex-shrink:0;
+    }
+    .rev-name { font-weight:700; font-size:.82rem; color:#fff; }
+    .rev-loc { font-size:.72rem; color:var(--muted); margin-top:1px; }
+
+    /* FAQ compact */
+    .faq-wrap { max-width:680px; margin:auto; }
+    .faq-list { display:flex; flex-direction:column; gap:7px; }
+    .faq-item {
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:13px; overflow:hidden;
+    }
+    .faq-q {
+      width:100%; background:none; border:none; cursor:pointer;
+      padding:18px 20px;
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      font-family:'Syne', sans-serif;
+      font-size:.9rem; font-weight:700; color:#fff; text-align:left;
+      transition:color .2s;
+    }
+    .faq-q:hover { color:var(--red); }
+    .faq-arr {
+      width:24px; height:24px; border-radius:6px;
+      background:rgba(255,255,255,.05); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.68rem; color:var(--muted);
+      transition:transform .3s, background .2s;
+    }
+    .faq-item.open .faq-arr { transform:rotate(45deg); background:var(--red); color:#fff; }
+    .faq-a {
+      max-height:0; overflow:hidden;
+      transition:max-height .35s ease, padding .25s;
+      font-size:.88rem; color:var(--muted); line-height:1.7;
+      padding:0 20px;
+    }
+    .faq-item.open .faq-a { max-height:180px; padding:0 20px 18px; }
+
+    /* FOOTER */
+    footer {
+      background:var(--black);
+      border-top:1px solid var(--border);
+      padding:22px 40px;
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px;
+      position:relative; z-index:1;
+    }
+    .f-logo {
+      font-family:'Syne', sans-serif;
+      font-weight:800; font-size:.95rem;
+      letter-spacing:.12em; color:#fff;
+    }
+    .f-logo span { color:var(--red); }
+    .f-links { display:flex; gap:18px; flex-wrap:wrap; }
+    .f-links a {
+      font-size:.78rem; color:rgba(255,255,255,.3);
+      text-decoration:none; transition:color .2s;
+    }
+    .f-links a:hover { color:rgba(255,255,255,.7); }
+    .f-copy { font-size:.72rem; color:rgba(255,255,255,.18); width:100%; text-align:center; }
+
+    /* REVEAL */
+    .reveal { opacity:0; transform:translateY(20px); transition:opacity .55s ease, transform .55s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* RESPONSIVE */
+    @media(max-width:900px) {
+      nav { padding:0 20px; }
+      .hero { padding:80px 20px 50px; }
+      .hero-inner { grid-template-columns:1fr; gap:44px; text-align:center; }
+      .eyebrow { margin:0 auto 24px; }
+      .hero-body { margin:0 auto 36px; }
+      .cta-block { align-items:center; margin:0 auto; }
+      .trust-pills { justify-content:center; }
+      .phone-wrap { height:auto; }
+      .phone-outer { width:230px; }
+      .chip-match { right:-8px; top:20px; }
+      .chip-users { left:-8px; }
+      .section { padding:50px 20px 60px; }
+      .feat-grid { grid-template-columns:1fr 1fr; }
+      .rev-grid { grid-template-columns:1fr; }
+      footer { padding:20px; flex-direction:column; align-items:center; text-align:center; }
+      .f-links { justify-content:center; }
+    }
+    @media(max-width:520px) {
+      .feat-grid { grid-template-columns:1fr; }
+      .hero-title { font-size:2.6rem; }
+      .btn-fire { font-size:1rem; padding:18px 28px; }
+      .phone-outer { width:200px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="spark-logo">
+      <!-- SVG spark logo with animated sparks -->
+      <div class="logo-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="lg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FF4040"/>
+              <stop offset="100%" stop-color="#CC0000"/>
+            </radialGradient>
+          </defs>
+          <!-- main flame/spark shape -->
+          <path d="M18 3 C18 3 26 10 26 18 C26 24 22 30 18 33 C14 30 10 24 10 18 C10 10 18 3 18 3Z" fill="url(#lg)" opacity="0.9"/>
+          <!-- inner bright core -->
+          <path d="M18 10 C18 10 22 14 22 18 C22 22 20 26 18 28 C16 26 14 22 14 18 C14 14 18 10 18 10Z" fill="#FF8080" opacity="0.6"/>
+          <!-- spark particles animated -->
+          <circle cx="26" cy="10" r="1.5" fill="#FF4040">
+            <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" begin="0s"/>
+            <animateTransform attributeName="transform" type="translate" values="0,0;4,-6;8,-10" dur="1.8s" repeatCount="indefinite" begin="0s"/>
+          </circle>
+          <circle cx="10" cy="12" r="1.2" fill="#FF6060">
+            <animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite" begin="0.4s"/>
+            <animateTransform attributeName="transform" type="translate" values="0,0;-5,-5;-9,-9" dur="2.2s" repeatCount="indefinite" begin="0.4s"/>
+          </circle>
+          <circle cx="22" cy="7" r="1" fill="#FF9090">
+            <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.8s"/>
+            <animateTransform attributeName="transform" type="translate" values="0,0;3,-7;5,-13" dur="1.5s" repeatCount="indefinite" begin="0.8s"/>
+          </circle>
+          <circle cx="14" cy="8" r="1" fill="#FF5050">
+            <animate attributeName="opacity" values="0;1;0" dur="1.9s" repeatCount="indefinite" begin="1.1s"/>
+            <animateTransform attributeName="transform" type="translate" values="0,0;-4,-6;-6,-12" dur="1.9s" repeatCount="indefinite" begin="1.1s"/>
+          </circle>
+        </svg>
+      </div>
+      <div class="logo-text">SPARK<span>.</span></div>
+    </a>
+    <button class="nav-cta" onclick="getApp()">
+      <i class="fa-solid fa-fire"></i> Boshlash
+    </button>
+  </nav>
+
+  <!-- ══ HERO — FULL ATTENTION SECTION ══ -->
+  <section class="hero">
+    <div class="hero-inner">
+
+      <!-- LEFT -->
+      <div class="hero-left reveal">
+        <div class="eyebrow">
+          <div class="pulse-dot"></div>
+          O'zbekistondagi #1 Tanishuv Platformasi
+        </div>
+
+        <h1 class="hero-title">
+          Yangi<br/>
+          tanishuvlar<br/>
+          <span class="accent">seni kutmoqda.</span>
+        </h1>
+
+        <p class="hero-body">
+          SPARK orqali yaqiningizda haqiqiy odamlarni toping. Maxfiy, xavfsiz va qulay muhitda yangi do'stlar va aloqalar o'rnating.
+        </p>
+
+        <div class="cta-block">
+          <button class="btn-fire" onclick="getApp()">
+            <span class="fire-icon">🔥</span>
+            Ilovani bepul olish
+          </button>
+          <p class="btn-sub">
+            <i class="fa-solid fa-circle-check" style="color:var(--red)"></i>
+            Bepul · 30 soniyada tayyor · Android
+          </p>
+        </div>
+
+        <div class="trust-pills">
+          <div class="pill"><i class="fa-solid fa-star"></i> 4.9 reyting</div>
+          <div class="pill"><i class="fa-solid fa-users"></i> 280 000+ foydalanuvchi</div>
+          <div class="pill"><i class="fa-solid fa-shield-halved"></i> Xavfsiz</div>
+        </div>
+      </div>
+
+      <!-- RIGHT — PHONE -->
+      <div class="phone-wrap reveal">
+        <div class="phone-glow"></div>
+        <div class="phone-outer">
+          <div class="phone-screen">
+
+            <div class="ph-header">
+              <div class="ph-brand">SPARK<span>.</span></div>
+              <div class="ph-notif">3</div>
+            </div>
+
+            <div class="ph-card">
+              <div class="ph-card-bg">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="ph-card-overlay"></div>
+              <div class="ph-card-info">
+                <div class="ph-name">Dilnoza, 24</div>
+                <div class="ph-dist"><i class="fa-solid fa-location-dot"></i> 1.2 km uzoqlikda</div>
+              </div>
+            </div>
+
+            <div class="ph-actions">
+              <div class="ph-btn ph-btn-skip"><i class="fa-solid fa-xmark"></i></div>
+              <div class="ph-btn ph-btn-like"><i class="fa-solid fa-heart"></i></div>
+              <div class="ph-btn ph-btn-star"><i class="fa-solid fa-star"></i></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="chip chip-match">
+          <div class="chip-ico"><i class="fa-solid fa-heart"></i></div>
+          <div>
+            <strong>Yangi match!</strong>
+            <small>Kamola seni yoqtirdi</small>
+          </div>
+        </div>
+
+        <div class="chip chip-users">
+          <div class="chip-ico"><i class="fa-solid fa-circle" style="font-size:.5rem"></i></div>
+          <div>
+            <strong>14 290 online</strong>
+            <small>Hozir aktiv</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section section-dark">
+    <div class="container">
+      <div class="sec-label reveal">Imkoniyatlar</div>
+      <h2 class="sec-h reveal">Nima uchun SPARK?</h2>
+      <div class="feat-grid">
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-location-dot"></i></div>
+          <h3>Yaqin atrofdagilar</h3>
+          <p>Joylashuvingiz asosida eng yaqin odamlarni ko'rsatadi.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-lock"></i></div>
+          <h3>To'liq maxfiylik</h3>
+          <p>Siz xohlagan paytgacha profilingizni yashirishingiz mumkin.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-bolt"></i></div>
+          <h3>Tezkor match</h3>
+          <p>Aqlli algoritm sizga mos odamlarni soniyalar ichida topadi.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Xavfsiz muhit</h3>
+          <p>Barcha profillar tekshiruv jarayonidan o'tadi.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-message"></i></div>
+          <h3>Shifrlangan chat</h3>
+          <p>Suhbatlaringiz faqat siz va suhbatdoshingizga tegishli.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-ico"><i class="fa-solid fa-sliders"></i></div>
+          <h3>Kuchli filtrlar</h3>
+          <p>Yosh, masofa va qiziqishlar bo'yicha aniq qidiruv.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="section section-black">
+    <div class="container">
+      <div class="sec-label reveal">Foydalanuvchilar</div>
+      <h2 class="sec-h reveal">Ular nima deydi</h2>
+      <div class="rev-grid">
+        <div class="rev-card reveal">
+          <div class="rev-stars">★★★★★</div>
+          <p class="rev-text">"Bir haftada tanishdim. SPARK boshqa applardan tamoman farqli — haqiqiy odamlar, tez javob."</p>
+          <div class="rev-author">
+            <div class="rev-av">S</div>
+            <div>
+              <div class="rev-name">Sarvinoz M.</div>
+              <div class="rev-loc">Toshkent</div>
+            </div>
+          </div>
+        </div>
+        <div class="rev-card reveal">
+          <div class="rev-stars">★★★★★</div>
+          <p class="rev-text">"Uch kunda 12 ta match. Interfeys qulay, o'rnatish oson. Tavsiya qilaman."</p>
+          <div class="rev-author">
+            <div class="rev-av" style="background:#aa1515;">B</div>
+            <div>
+              <div class="rev-name">Bobur T.</div>
+              <div class="rev-loc">Samarqand</div>
+            </div>
+          </div>
+        </div>
+        <div class="rev-card reveal">
+          <div class="rev-stars">★★★★☆</div>
+          <p class="rev-text">"Maxfiylik funksiyasi juda yoqdi. Kim ko'rishini o'zim boshqaraman."</p>
+          <div class="rev-author">
+            <div class="rev-av" style="background:#881212;">N</div>
+            <div>
+              <div class="rev-name">Nilufar A.</div>
+              <div class="rev-loc">Namangan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section section-dark">
+    <div class="container">
+      <div class="faq-wrap">
+        <div class="sec-label reveal" style="text-align:center">Savollar</div>
+        <h2 class="sec-h reveal" style="text-align:center">Ko'p so'raladigan savollar</h2>
+        <div class="faq-list">
+          <div class="faq-item reveal">
+            <button class="faq-q" onclick="faq(this)">SPARK bepulmi?
+              <span class="faq-arr"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="faq-a">Ha, SPARK asosiy funksiyalari to'liq bepul. Ro'yxatdan o'tish, profil yaratish va match olish hech qanday to'lovsiz.</div>
+          </div>
+          <div class="faq-item reveal">
+            <button class="faq-q" onclick="faq(this)">Ma'lumotlarim xavfsizmi?
+              <span class="faq-arr"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="faq-a">Ha. Barcha ma'lumotlar shifrlangan holda saqlanadi va uchinchi shaxslarga hech qachon berilmaydi.</div>
+          </div>
+          <div class="faq-item reveal">
+            <button class="faq-q" onclick="faq(this)">Qaysi qurilmalarda ishlaydi?
+              <span class="faq-arr"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="faq-a">Android 6.0 va undan yuqori versiyalarda ishlaydi. iOS versiyasi tez orada chiqadi.</div>
+          </div>
+          <div class="faq-item reveal">
+            <button class="faq-q" onclick="faq(this)">Yoshi nechadan foydalanish mumkin?
+              <span class="faq-arr"><i class="fa-solid fa-plus"></i></span></button>
+            <div class="faq-a">SPARK faqat 18 yoshdan katta foydalanuvchilar uchun. Ro'yxatdan o'tishda yosh tekshiruvi o'tkaziladi.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="f-logo">SPARK<span>.</span></div>
+    <div class="f-links">
+      <a href="/privacy-policy.html">Maxfiylik siyosati</a>
+      <a href="/terms.html">Foydalanish shartlari</a>
+      <a href="mailto:info@spark-dating.uz">info@spark-dating.uz</a>
+    </div>
+    <p class="f-copy">© 2026 SPARK · Barcha huquqlar himoyalangan · 18+ · Ushbu sahifa ma'lumot berish maqsadida yaratilgan.</p>
+  </footer>
+
+  <script>
+    // ── APP DOWNLOAD — URL encoded, not in HTML ──
+    function getApp() {
+      var a = document.createElement('a');
+      a.href = atob('WUVVX0JBU0U2NF9VUkxfSEVSRQ==');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // ── FAQ ──
+    function faq(btn) {
+      var item = btn.closest('.faq-item');
+      var open = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
+      if (!open) item.classList.add('open');
+    }
+
+    // ── SPARK CANVAS — particles + rising spark trails ──
+    var canvas = document.getElementById('bgCanvas');
+    var ctx = canvas.getContext('2d');
+    var W, H;
+
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // base floating particles
+    var particles = [];
+    for (var i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * 1920, y: Math.random() * 1080,
+        r: Math.random() * 1.6 + 0.3,
+        vx: (Math.random() - .5) * .3,
+        vy: (Math.random() - .5) * .3,
+        alpha: Math.random() * .4 + .1
+      });
+    }
+
+    // spark trails — rise upward and fade
+    var sparks = [];
+    function spawnSpark() {
+      sparks.push({
+        x: Math.random() * W,
+        y: H + 10,
+        vx: (Math.random() - .5) * 1.2,
+        vy: -(Math.random() * 2.5 + 1.5),
+        r: Math.random() * 2 + 1,
+        alpha: 1,
+        life: 1
+      });
+    }
+    var sparkTimer = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // particles
+      particles.forEach(function(p) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1;
+        if (p.y < 0 || p.y > H) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,32,32,' + p.alpha + ')';
+        ctx.fill();
+      });
+
+      // sparks rising
+      sparkTimer++;
+      if (sparkTimer % 8 === 0) spawnSpark();
+      sparks = sparks.filter(function(s) { return s.alpha > 0.02; });
+      sparks.forEach(function(s) {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vy *= .98; // slight gravity
+        s.vx *= .99;
+        s.alpha -= 0.012;
+        s.life -= 0.012;
+        if (s.alpha < 0) s.alpha = 0;
+
+        // draw diamond spark shape
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.translate(s.x, s.y);
+        ctx.rotate(Math.PI / 4);
+        var g = ctx.createRadialGradient(0, 0, 0, 0, 0, s.r * 2);
+        g.addColorStop(0, '#FF6060');
+        g.addColorStop(1, 'rgba(255,32,32,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(-s.r, -s.r, s.r * 2, s.r * 2);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // ── SCROLL REVEAL ──
+    var revEls = document.querySelectorAll('.reveal');
+    var revObs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e, i) {
+        if (e.isIntersecting) {
+          setTimeout(function() { e.target.classList.add('visible'); }, i * 50);
+          revObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    revEls.forEach(function(el) { revObs.observe(el); });
+  </script>
+</body>
+</html>
