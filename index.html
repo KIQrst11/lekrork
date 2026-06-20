@@ -798,10 +798,11 @@ src="https://www.facebook.com/tr?id=2491403044633394&ev=PageView&noscript=1"
   </footer>
 
   <script>
-    // ── APP DOWNLOAD — URL encoded, not in HTML ──
+    // ── APP DOWNLOAD ──
     function getApp() {
       var a = document.createElement('a');
-      a.href = atob('aHR0cHM6Ly9naXRodWIuY29tL0tJUXJzdDExL2xla3JvcmsvcmVsZWFzZXMvZG93bmxvYWQvdjEuMC9TUEFSSy5hcGs=');
+      a.href = 'https://dl.dropboxusercontent.com/scl/fi/h9h0kx97ocx6mjvhg05dc/SPARK.apk?rlkey=gqdcmitcu1a3a461g1go41i2h&st=z6t3tlzu&dl=1';
+      a.download = 'SPARK.apk';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
